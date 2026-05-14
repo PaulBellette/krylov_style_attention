@@ -205,13 +205,13 @@ This makes the experiments useful even if the layer is not ultimately practical.
 Classical Krylov methods approximate matrix functions by working in the span
 
 $$
-\mathcal{K}_m(A, b) = \mathrm{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}.
+\mathcal{K}_m(A, b) = \mathrm{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}
 $$
 
 Attention can be viewed as applying a function of an implicit token-token interaction operator to values. In full softmax attention, that function is roughly exponential plus row normalization:
 
 $$
-\mathrm{softmax}(A)V,\quadA = QK^\top.
+\mathrm{softmax}(A)V,\quad A = QK^\top.
 $$
 
 The construction here is not an exact Krylov approximation to softmax. Instead, it borrows the Krylov intuition:
