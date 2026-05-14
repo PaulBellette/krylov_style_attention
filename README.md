@@ -21,7 +21,7 @@ $$
 then applies a row-wise softmax to produce normalized retrieval weights,
 
 $$
-Y = \operatorname{softmax}(QK^\top)V.
+Y = \mathrm{softmax}(QK^\top)V.
 $$
 
 This is powerful because it lets the model select or copy from specific previous tokens. But it also couples attention to an explicit $n \times n$ interaction matrix, which is expensive for long sequences and awkward to interpret as a compact causal state.
@@ -99,7 +99,7 @@ $$
 where $\phi$ is a positive feature map. In the current prototype,
 
 $$
-\phi(x) = \operatorname{softplus}(\beta x) + \epsilon,
+\phi(x) = \mathrm{softplus}(\beta x) + \epsilon,
 $$
 
 followed by L1 normalization across the feature dimension.
@@ -229,13 +229,13 @@ Classical Krylov methods approximate matrix functions by working in the span
 $$
 \mathcal{K}_m(A, b)
 =
-\operatorname{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}.
+\mathrm{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}.
 $$
 
 Attention can be viewed as applying a function of an implicit token-token interaction operator to values. In full softmax attention, that function is roughly exponential plus row normalization:
 
 $$
-\operatorname{softmax}(A)V,
+\mathrm{softmax}(A)V,
 \quad
 A = QK^\top.
 $$
