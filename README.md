@@ -14,42 +14,42 @@ The experiments are intentionally small. They are meant to be readable, hackable
 
 Softmax attention is extremely effective at sharp retrieval. Given queries and keys, it forms token-token scores,
 
-\[
+$$
 QK^\top
-\]
+$$
 
 then applies a row-wise softmax to produce normalized retrieval weights,
 
-\[
+$$
 Y = \operatorname{softmax}(QK^\top)V.
-\]
+$$
 
-This is powerful because it lets the model select or copy from specific previous tokens. But it also couples attention to an explicit \(n \times n\) interaction matrix, which is expensive for long sequences and awkward to interpret as a compact causal state.
+This is powerful because it lets the model select or copy from specific previous tokens. But it also couples attention to an explicit $n \times n$ interaction matrix, which is expensive for long sequences and awkward to interpret as a compact causal state.
 
 Linear attention takes a different route. It replaces the softmax kernel with a positive feature map,
 
-\[
+$$
 \phi(q)^\top \phi(k),
-\]
+$$
 
 and uses associativity to compute causal attention through recurrent prefix states:
 
-\[
+$$
 S_t = S_{t-1} + \phi(k_t)v_t^\top,
-\]
+$$
 
-\[
+$$
 z_t = z_{t-1} + \phi(k_t),
-\]
+$$
 
-\[
+$$
 y_t =
 \frac{
 \phi(q_t)^\top S_t
 }{
 \phi(q_t)^\top z_t
 }.
-\]
+$$
 
 This is attractive because the sequence is summarized by a state rather than an explicit attention matrix. It is also closely related to fast-weight memory systems.
 
@@ -63,9 +63,9 @@ Recent architectures such as multi-head latent attention attack this problem by 
 
 The Krylov mixer explored here belongs to that second family of ideas. In principle, it replaces an explicit per-token KV cache with a small set of recurrent moment states:
 
-\[
+$$
 S^{(0)}, S^{(1)}, \dots, S^{(m-1)}.
-\]
+$$
 
 That makes it conceptually relevant to long-context and cache-compression discussions.
 
@@ -88,100 +88,100 @@ That question led to the Krylov-style construction explored here.
 
 Let
 
-\[
+$$
 u_t = \phi(q_t),
-\]
+$$
 
-\[
+$$
 w_t = \phi(k_t),
-\]
+$$
 
-where \(\phi\) is a positive feature map. In the current prototype,
+where $\phi$ is a positive feature map. In the current prototype,
 
-\[
+$$
 \phi(x) = \operatorname{softplus}(\beta x) + \epsilon,
-\]
+$$
 
 followed by L1 normalization across the feature dimension.
 
 The zeroth-order value is just the current value vector:
 
-\[
+$$
 Y_t^{(0)} = v_t,
-\]
+$$
 
-\[
+$$
 Z_t^{(0)} = 1.
-\]
+$$
 
-For each order \(r \ge 1\), we maintain recurrent states
+For each order $r \ge 1$, we maintain recurrent states
 
-\[
+$$
 S_t^{(r-1)}
-\]
+$$
 
 and
 
-\[
+$$
 g_t^{(r-1)}.
-\]
+$$
 
 The update is
 
-\[
+$$
 S_t^{(r-1)}
 =
 \lambda S_{t-1}^{(r-1)}
 +
 w_t \left(Y_t^{(r-1)}\right)^\top,
-\]
+$$
 
-\[
+$$
 g_t^{(r-1)}
 =
 \lambda g_{t-1}^{(r-1)}
 +
 w_t Z_t^{(r-1)}.
-\]
+$$
 
 The next-order readout is
 
-\[
+$$
 Y_t^{(r)}
 =
 u_t^\top S_t^{(r-1)},
-\]
+$$
 
-\[
+$$
 Z_t^{(r)}
 =
 u_t^\top g_t^{(r-1)}.
-\]
+$$
 
 The final output is a normalized weighted mixture of orders:
 
-\[
+$$
 y_t =
 \frac{
 \sum_{r=1}^{m} c_r Y_t^{(r)}
 }{
 \sum_{r=1}^{m} c_r Z_t^{(r)}
 }.
-\]
+$$
 
-The coefficient for \(r=0\) is set to zero in the default experiments:
+The coefficient for $r=0$ is set to zero in the default experiments:
 
-\[
+$$
 c_0 = 0.
-\]
+$$
 
-This is deliberate. The transformer residual path already carries current-token information, and including \(Y_t^{(0)} = v_t\) inside the normalized mixer caused the layer to collapse toward a mostly identity-like value passthrough in early tests.
+This is deliberate. The transformer residual path already carries current-token information, and including $Y_t^{(0)} = v_t$ inside the normalized mixer caused the layer to collapse toward a mostly identity-like value passthrough in early tests.
 
 The current default coefficients are geometric:
 
-\[
+$$
 c_r = \rho^{r-1}, \quad r \ge 1.
-\]
+$$
 
 ---
 
@@ -189,26 +189,26 @@ c_r = \rho^{r-1}, \quad r \ge 1.
 
 This construction is best understood as a superset of causal positive-kernel linear attention.
 
-For \(m=1\), the layer reduces to ordinary causal linear attention / fast-weight memory:
+For $m=1$, the layer reduces to ordinary causal linear attention / fast-weight memory:
 
-\[
+$$
 S_t = S_{t-1} + w_t v_t^\top,
-\]
+$$
 
-\[
+$$
 g_t = g_{t-1} + w_t,
-\]
+$$
 
-\[
+$$
 y_t =
 \frac{
 u_t^\top S_t
 }{
 u_t^\top g_t
 }.
-\]
+$$
 
-For \(m > 1\), the model accumulates and reads from higher-order recurrent states. These higher-order states can be interpreted as repeated memory-read/write interactions, or informally as low-degree Krylov-style terms of an implicit causal attention operator.
+For $m > 1$, the model accumulates and reads from higher-order recurrent states. These higher-order states can be interpreted as repeated memory-read/write interactions, or informally as low-degree Krylov-style terms of an implicit causal attention operator.
 
 So the hypothesis is not:
 
@@ -226,19 +226,19 @@ This makes the experiments useful even if the layer is not ultimately practical.
 
 Classical Krylov methods approximate matrix functions by working in the span
 
-\[
+$$
 \mathcal{K}_m(A, b)
 =
 \operatorname{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}.
-\]
+$$
 
 Attention can be viewed as applying a function of an implicit token-token interaction operator to values. In full softmax attention, that function is roughly exponential plus row normalization:
 
-\[
+$$
 \operatorname{softmax}(A)V,
 \quad
 A = QK^\top.
-\]
+$$
 
 The construction here is not an exact Krylov approximation to softmax. Instead, it borrows the Krylov intuition:
 
@@ -254,19 +254,19 @@ This layer also has a connection to state space models, but it is not a standard
 
 An SSM carries a compressed recurrent state forward in time:
 
-\[
+$$
 h_t = A_t h_{t-1} + B_t x_t,
-\]
+$$
 
-\[
+$$
 y_t = C_t h_t.
-\]
+$$
 
-The Krylov mixer also avoids an explicit \(n \times n\) attention matrix by carrying recurrent state. The difference is that the state here is a content-addressable memory built from key/value feature moments:
+The Krylov mixer also avoids an explicit $n \times n$ attention matrix by carrying recurrent state. The difference is that the state here is a content-addressable memory built from key/value feature moments:
 
-\[
+$$
 S_t \sim \sum_{j \le t} \phi(k_j)v_j^\top,
-\]
+$$
 
 plus higher-order extensions.
 
@@ -287,15 +287,15 @@ Softmax attention and Krylov-style memory have different strengths.
 
 Softmax attention is naturally good at sharp retrieval:
 
-\[
+$$
 \text{Which exact previous token should I copy or use?}
-\]
+$$
 
 The Krylov mixer is more naturally a diffuse recurrent state mechanism:
 
-\[
+$$
 \text{What information has propagated through the prefix state?}
-\]
+$$
 
 For that reason, one plausible architecture is hybrid:
 
@@ -382,7 +382,7 @@ The main comparison is:
 m = 1  vs  m = 2  vs  m = 3
 ```
 
-where \(m=1\) is the linear-attention-like case.
+where $m=1$ is the linear-attention-like case.
 
 ### 3. Does Krylov order reduce required depth?
 
@@ -476,7 +476,7 @@ This result is useful because it rules out an overly broad claim. The Krylov-sty
 
 The clearest positive signal appears on the hop-2 path task.
 
-For pure Krylov stacks, increasing order from \(m=1\) to \(m=2\) or \(m=3\) reduced the number of training steps needed to solve the task. The effect was strongest at shallow depth.
+For pure Krylov stacks, increasing order from $m=1$ to $m=2$ or $m=3$ reduced the number of training steps needed to solve the task. The effect was strongest at shallow depth.
 
 Representative median solved steps:
 
@@ -499,7 +499,7 @@ m=3: 6500
 
 This is consistent with the motivating hypothesis:
 
-> higher-order recurrent memory states can provide useful propagation capacity beyond the \(m=1\) linear-attention-like case.
+> higher-order recurrent memory states can provide useful propagation capacity beyond the $m=1$ linear-attention-like case.
 
 However, softmax remained faster on the same task:
 
@@ -551,7 +551,7 @@ depth=3: 1/3 seeds solved
 depth=4: 2/3 seeds solved
 ```
 
-The hop-3 results do not support a simple conclusion either way. Higher-order Krylov solved some shallow-depth seeds that \(m=1\) did not, which is a weak positive signal. But the effect was not robust across depth or random seed, and at depth 4 the higher-order variants were worse than \(m=1\) in this small run.
+The hop-3 results do not support a simple conclusion either way. Higher-order Krylov solved some shallow-depth seeds that $m=1$ did not, which is a weak positive signal. But the effect was not robust across depth or random seed, and at depth 4 the higher-order variants were worse than $m=1$ in this small run.
 
 Accuracy also tended to plateau near rough fractions such as one-third and two-thirds. This suggests that models may be learning some start positions or positional heuristics rather than a general path-composition algorithm.
 
@@ -619,7 +619,7 @@ A practical implementation would likely need one or more of:
 - parallel scan / chunked scan formulation;
 - custom CUDA/Triton kernels;
 - a more careful hybrid architecture;
-- learnable coefficients \(c_r\);
+- learnable coefficients $c_r$;
 - gating or normalization improvements.
 
 The current code is a mechanism test, not an efficiency claim.
@@ -632,9 +632,9 @@ The current code is a mechanism test, not an efficiency claim.
 
 The current experiments use fixed geometric coefficients,
 
-\[
+$$
 c_r = \rho^{r-1}.
-\]
+$$
 
 This is simple and stable, but probably too rigid. A natural next step is to learn the order coefficients directly, perhaps with a positivity constraint such as softplus or a simplex normalization.
 
@@ -697,7 +697,7 @@ This project does **not** claim that Krylov attention beats softmax attention.
 
 A more accurate claim is:
 
-> This is a small experimental family that contains causal positive-kernel linear attention as the \(m=1\) case and adds higher-order recurrent memory states. The experiments test whether those higher-order states help on synthetic tasks designed to reward multi-step propagation.
+> This is a small experimental family that contains causal positive-kernel linear attention as the $m=1$ case and adds higher-order recurrent memory states. The experiments test whether those higher-order states help on synthetic tasks designed to reward multi-step propagation.
 
 That is the intended scope.
 
