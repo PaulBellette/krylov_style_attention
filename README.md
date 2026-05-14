@@ -129,44 +129,27 @@ $$
 The update is
 
 $$
-S_t^{(r-1)}
-=
-\lambda S_{t-1}^{(r-1)}
-+
-w_t \left(Y_t^{(r-1)}\right)^\top,
+S_t^{(r-1)} = \lambda S_{t-1}^{(r-1)}+w_t \left(Y_t^{(r-1)}\right)^\top,
 $$
 
 $$
-g_t^{(r-1)}
-=
-\lambda g_{t-1}^{(r-1)}
-+
-w_t Z_t^{(r-1)}.
+g_t^{(r-1)} = \lambda g_{t-1}^{(r-1)}+w_t Z_t^{(r-1)}.
 $$
 
 The next-order readout is
 
 $$
-Y_t^{(r)}
-=
-u_t^\top S_t^{(r-1)},
+Y_t^{(r)} = u_t^\top S_t^{(r-1)},
 $$
 
 $$
-Z_t^{(r)}
-=
-u_t^\top g_t^{(r-1)}.
+Z_t^{(r)} = u_t^\top g_t^{(r-1)}.
 $$
 
 The final output is a normalized weighted mixture of orders:
 
 $$
-y_t =
-\frac{
-\sum_{r=1}^{m} c_r Y_t^{(r)}
-}{
-\sum_{r=1}^{m} c_r Z_t^{(r)}
-}.
+y_t = \frac{\sum_{r=1}^{m} c_r Y_t^{(r)}}{\sum_{r=1}^{m} c_r Z_t^{(r)}}.
 $$
 
 The coefficient for $r=0$ is set to zero in the default experiments:
@@ -200,12 +183,7 @@ g_t = g_{t-1} + w_t,
 $$
 
 $$
-y_t =
-\frac{
-u_t^\top S_t
-}{
-u_t^\top g_t
-}.
+y_t = \frac{u_t^\top S_t}{u_t^\top g_t}.
 $$
 
 For $m > 1$, the model accumulates and reads from higher-order recurrent states. These higher-order states can be interpreted as repeated memory-read/write interactions, or informally as low-degree Krylov-style terms of an implicit causal attention operator.
@@ -227,17 +205,13 @@ This makes the experiments useful even if the layer is not ultimately practical.
 Classical Krylov methods approximate matrix functions by working in the span
 
 $$
-\mathcal{K}_m(A, b)
-=
-\mathrm{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}.
+\mathcal{K}_m(A, b) = \mathrm{span}\{b, Ab, A^2b, \dots, A^{m-1}b\}.
 $$
 
 Attention can be viewed as applying a function of an implicit token-token interaction operator to values. In full softmax attention, that function is roughly exponential plus row normalization:
 
 $$
-\mathrm{softmax}(A)V,
-\quad
-A = QK^\top.
+\mathrm{softmax}(A)V,\quadA = QK^\top.
 $$
 
 The construction here is not an exact Krylov approximation to softmax. Instead, it borrows the Krylov intuition:
