@@ -679,6 +679,12 @@ That is the intended scope.
 
 ---
 
+## Convergent Work (Update 21st June 2026)
+
+I was poking around while daydreaming about alternative methods of subquadratic attention and I was pleasantly surprised to come across [Higher-order Linear Attention](https://arxiv.org/pdf/2510.27258), which develops a formal higher-order linear-attention construction with strict causal recurrences and scan-parallel structure. This repository was an exploratory prototype around a similar question about wether recurrent/linear attention can be enriched with higher-order Krylov-style memory states.
+
+The mechanisms are not identical. This prototype uses a recursive Krylov-style ladder of memory states, while HLA derives specific higher-order attention operators and their causal sufficient statistics. So there is a high degree of conceptual overlap in that both lines of work treat ordinary causal linear attention as a first-order memory and see what is gained by adding higher-order interactions. I'll aim to add this into the mix to see whether their interpretation captures something this prototype missed. 
+
 ## Acknowledgements
 
 This project grew out of a collaborative exploration between Paul Bellette and ChatGPT.
